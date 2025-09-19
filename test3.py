@@ -1,30 +1,32 @@
 from playwright.sync_api import sync_playwright
 import time
+import sys
 
 AMOUNT_IN = "1"         # quantità di WETH da scambiare
 OUTPUT_TOKEN = "TARGET"  # simbolo del token di output per stampa
 
 UNISWAP_URL = (
-    "https://app.uniswap.org/swap?"
-    "inputCurrency=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&"
-    "outputCurrency=0x00813E3421E1367353BfE7615c7f7f133C89df74&"
-    "chain=1"
+    "https://app.uniswap.org/swap?inputCurrency=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&outputCurrency=0x00813E3421E1367353BfE7615c7f7f133C89df74&chain=1"
 )
 
 def get_uniswap_quote():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, slow_mo=1000)  # headless=False per debug
-        context = browser.new_context(viewport={"width": 1280, "height": 720})
-        page = context.new_page()
+        print("🌐 Avvio browser...")
+        browser = p.chromium.launch(headless=True, slow_mo=200, args=["--disable-blink-features=AutomationControlled"])
+        page = browser.new_page()
+        page.set_default_timeout(60000)  # Timeout globale di 60s
+
+
+        # Fase di "warm-up" per evitare il bug del primo caricamento
+        page.goto("https://example.com", wait_until="domcontentloaded")
 
         print("🌐 Apro Uniswap...")
-        try:
-            page.goto(UNISWAP_URL, wait_until="domcontentloaded", timeout=60000)
-        except Exception as e:
-            print(f"❌ Errore caricamento pagina: {str(e)}")
-            page.screenshot(path="uniswap_error.png")
-            browser.close()
-            return
+        page.goto(UNISWAP_URL, wait_until="domcontentloaded", timeout=30000)
+        
+        page.screenshot(path="uniswap_swap_debug.png")
+        print("📸 Screenshot salvato come uniswap_swap_debug.png")
+
+        sys.exit(1)
 
         # Gestisci eventuali pop-up o consensi (es. cookie)
         try:

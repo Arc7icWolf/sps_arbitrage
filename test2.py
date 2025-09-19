@@ -13,11 +13,18 @@ AERODROME_URL = (
 
 def get_aerodrome_quote():
     with sync_playwright() as p:
+        print("🌐 Avvio browser...")
         browser = p.chromium.launch(headless=True, slow_mo=200)
         page = browser.new_page()
+        page.set_default_timeout(60000)  # Timeout globale di 60s
 
-        print("🌐 Apro Aerodrome...")
-        page.goto(AERODROME_URL, wait_until="networkidle")
+        # Fase di "warm-up" per evitare il bug del primo caricamento
+        page.goto("https://example.com", wait_until="domcontentloaded")
+
+        print("✅ Browser pronto, carico Aerodrome...")
+        page.goto(AERODROME_URL, wait_until="domcontentloaded")
+        page.wait_for_selector('input[data-testid^="swapper-asset-input"]', timeout=30000)
+
 
         # ----------------------------
         # 1. Inserisci quantità iniziale

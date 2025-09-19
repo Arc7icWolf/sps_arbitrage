@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright, TimeoutError
 import time
 
-AMOUNT_IN = 0.02
+AMOUNT_IN = 1
 OUTPUT_TOKEN = "SPS"
 ONEINCH_URL = "https://app.1inch.io/swap?src=56:ETH&dst=56:SPS"
 

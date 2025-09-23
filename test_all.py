@@ -1,4 +1,4 @@
-"""ISTRUZIONI per bypassare usare headless=False su VSC Online
+"""ISTRUZIONI per usare headless=False su VSC Online
 1) sudo apt-get update && sudo apt-get install -y xvfb
 2) xvfb-run -s "-screen 0 1920x1080x24" python test_all.py
 """

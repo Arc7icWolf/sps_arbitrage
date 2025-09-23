@@ -6,18 +6,13 @@ import os
 import sys
 
 '''
-config = configparser.ConfigParser()
-config.read("config.ini")
-user_id = config["DEFAULT"].get("user_id")
-'''
-'''
 # Get credentias from Secrets
 USER_ID = os.getenv("USER_ID")
 if not USER_ID:
     raise ValueError("USER_ID not found")
 '''
 
-USER_ID = 132
+USER_ID = 500357318613925889
 
 
 def get_response(method, url, session: requests.Session, json=None):
@@ -57,24 +52,6 @@ def get_he_price(token, session: requests.Session):
     return token_price["result"][0]["basePrice"]
 
 
-def get_maya_price(quantity, session: requests.Session):
-    amount = Decimal(quantity)
-    token_amount = int(amount * (10**8))
-    url = (
-        f"https://mayanode.mayachain.info/mayachain/quote/swap?"
-        f"from_asset=ARB.ETH"
-        f"&to_asset=ARB.LEO-0X93864D81175095DD93360FFA2A529B8642F76A6E"
-        f"&amount={token_amount}"
-        f"&destination=0x1EdF9F4d2e98A2eb5DFeeC7f07c2e8b6C3FFaA4E"
-        f"&streaming_interval=3"
-        f"&streaming_quantity=0"
-        f"&liquidity_tolerance_bps=100"
-        f"&affiliate_bps=45&affiliate=wr"
-    )
-    maya_price = get_response("GET", url, session)
-    return maya_price
-
-
 def get_prices(tokens, session: requests.Session):
     prices = {}
     for token in tokens:
@@ -98,21 +75,21 @@ def compare_prices(tokens, session: requests.Session):
     prices = get_prices(tokens, session)
     one_hundred_dollars = {token: 100 / float(price) for token, price in prices.items()}
 
-    leo_price = get_he_price("SWAP.HIVE:SPS", session)
-    he_leo_amount = one_hundred_dollars['hive'] * float(leo_price) * 0.99
+    spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
+    spl_prices = []
+    for spl_token in spl_tokens:
+        spl_price = get_he_price(spl_token, session)
+        spl_prices.append(spl_price)
 
-    print(he_leo_amount)
+    sps_amount, dec_amount = (
+        one_hundred_dollars['hive'] * float(price) 
+        for price in spl_prices
+    )
 
-    maya_price = get_maya_price(one_hundred_dollars['ethereum'], session)
-    arb_leo_amount = maya_price.get("expected_amount_out")
+    print(sps_amount)
+    print(dec_amount)
 
-    if not arb_leo_amount:
-        sys.exit("Arb Network halted")
-
-    arb_leo_amount = int(arb_leo_amount) / (10**8)
-    
-    print(arb_leo_amount)
-
+    '''
     threshold = 1.17
     fee = 0.895
 
@@ -124,9 +101,10 @@ def compare_prices(tokens, session: requests.Session):
         notification(f"ARB: {arb_leo_amount}, H-E: {he_leo_amount}. Sell {arb_leo_amount * fee} on H-E")
     else:
         print("Nothing to see here")
+    '''
 
 
 if __name__ == "__main__":
-    tokens = ["hive", "ethereum"]
+    tokens = ["hive"]
     with requests.Session() as session:
         compare_prices(tokens, session)

@@ -143,20 +143,6 @@ def compare_prices(tokens, session: requests.Session):
 
     dec_outliers = find_divergence(dec_values)
 
-    """
-    threshold = 1.17
-    fee = 0.895
-
-    if he_leo_amount > arb_leo_amount * threshold:
-        print("HIVE --> LEO --> ARB.LEO --> ETH")
-        notification(f"H-E: {he_leo_amount}, ARB: {arb_leo_amount}. Sell {he_leo_amount * fee} on ARB")
-    elif arb_leo_amount > he_leo_amount * threshold:
-        print("ETH --> ARB.LEO --> LEO --> HIVE")
-        notification(f"ARB: {arb_leo_amount}, H-E: {he_leo_amount}. Sell {arb_leo_amount * fee} on H-E")
-    else:
-        print("Nothing to see here")
-    """
-
 
 if __name__ == "__main__":
     tokens = ["hive", "ethereum"]

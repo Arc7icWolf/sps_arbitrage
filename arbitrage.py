@@ -1,9 +1,6 @@
 import json
 import requests
-from decimal import Decimal
-import configparser
 import os
-import sys
 import bridge
 
 """

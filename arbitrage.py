@@ -1,5 +1,7 @@
 import json
 import requests
+from decimal import Decimal
+import configparser
 import os
 import sys
 import bridge
@@ -132,7 +134,7 @@ def compare_prices(tokens, session: requests.Session):
         "SPS": sps_amount,
         "bscSPS": bscSPS,
         "baseSPS": baseSPS,
-        "ethSPS": ethSPS,
+        # "ethSPS": ethSPS,
     }
 
     sps_outliers = find_divergence(sps_values)

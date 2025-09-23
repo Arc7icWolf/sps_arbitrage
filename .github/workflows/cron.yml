@@ -1,0 +1,41 @@
+name: Run arbitrage.py (Playwright headless=False, ultra-compact)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"  # ogni ora
+
+jobs:
+  run_bridge:
+    runs-on: ubuntu-latest
+
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.40.0-focal
+      options: --shm-size=1gb
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2️⃣ Cache pip + Playwright browsers insieme
+      - name: Cache Python packages & Playwright
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-python-playwright-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-playwright-
+
+      # 3️⃣ Install dependencies e browser
+      - name: Install dependencies and Chromium
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install chromium
+
+      # 4️⃣ Run bridge.py con Xvfb
+      - name: Run bridge.py
+        run: xvfb-run -s "-screen 0 1920x1080x24" python bridge.py

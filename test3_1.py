@@ -1,6 +1,6 @@
 ''' ISTRUZIONI per bypassare usare headless=False su VSC Online
 1) sudo apt-get update && sudo apt-get install -y xvfb
-2) xvfb-run -s "-screen 0 1920x1080x24" python test_uniswap.py
+2) xvfb-run -s "-screen 0 1920x1080x24" python test3_1.py
 '''
 
 from playwright.sync_api import sync_playwright
@@ -8,7 +8,7 @@ import time
 import sys
 
 AMOUNT_IN = "1"         # quantità di WETH da scambiare
-OUTPUT_TOKEN = "TARGET"  # simbolo del token di output per stampa
+OUTPUT_TOKEN = "SPS"  # simbolo del token di output per stampa
 
 UNISWAP_URL = (
     "https://app.uniswap.org/swap?"
@@ -86,6 +86,7 @@ def get_uniswap_quote():
 
         # Attendi calcolo output
         print("⏳ Attendo calcolo del risultato dello swap...")
+        time.sleep(3)
         result = None
         for _ in range(30):
             try:

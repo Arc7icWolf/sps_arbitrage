@@ -7,8 +7,6 @@ from playwright.sync_api import sync_playwright
 import time
 import json
 
-AMOUNT_IN = "0.025"
-
 def simulate_swap(inputs, key):
     print(f"✏️ Inserisco {AMOUNT_IN} nel campo 'from'...")
     inputs.nth(0).fill(AMOUNT_IN)
@@ -47,7 +45,7 @@ def uniswap(page, key):
     simulate_swap(inputs, key)
 
 
-def get_quote():
+def get_quote(amount_in):
     with sync_playwright() as p:
         print("🌐 Avvio browser...")
 
@@ -87,4 +85,5 @@ def get_quote():
 
 
 if __name__ == "__main__":
-    get_quote()
+    amount_in = "0.025"
+    get_quote(input_token)

@@ -4,6 +4,7 @@ from decimal import Decimal
 import configparser
 import os
 import sys
+from test_all import get_quote
 
 '''
 # Get credentias from Secrets
@@ -86,8 +87,10 @@ def compare_prices(tokens, session: requests.Session):
         for price in spl_prices
     )
 
-    print(sps_amount)
-    print(dec_amount)
+    print(f"SPS: {sps_amount}")
+    print(f"DEC: {dec_amount}")
+
+    bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = get_quote(one_hundred_dollars['ethereum'])
 
     '''
     threshold = 1.17
@@ -105,6 +108,6 @@ def compare_prices(tokens, session: requests.Session):
 
 
 if __name__ == "__main__":
-    tokens = ["hive"]
+    tokens = ["hive", "ethereum"]
     with requests.Session() as session:
         compare_prices(tokens, session)

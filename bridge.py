@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 import time
 import json
 
-AMOUNT = "1"
+AMOUNT_IN = "1"
 
 def simulate_swap(inputs, key):
     # print(f"✏️ Inserisco {AMOUNT_IN} nel campo 'from'...")

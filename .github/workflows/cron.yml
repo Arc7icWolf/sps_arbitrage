@@ -18,6 +18,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
       # 2️⃣ Cache pip + Playwright browsers insieme
       - name: Cache Python packages & Playwright
         uses: actions/cache@v3

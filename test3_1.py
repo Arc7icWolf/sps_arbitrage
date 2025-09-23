@@ -5,7 +5,6 @@
 
 from playwright.sync_api import sync_playwright
 import time
-import sys
 
 AMOUNT_IN = "1"         # quantità di WETH da scambiare
 OUTPUT_TOKEN = "SPS"  # simbolo del token di output per stampa

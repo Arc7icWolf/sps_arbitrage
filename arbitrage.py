@@ -6,12 +6,12 @@ import os
 import sys
 import bridge
 
-'''
+"""
 # Get credentias from Secrets
 USER_ID = os.getenv("USER_ID")
 if not USER_ID:
     raise ValueError("USER_ID not found")
-'''
+"""
 
 USER_ID = 500357318613925889
 
@@ -72,12 +72,50 @@ def notification(content):
     get_response("POST", webhook_url, session, json=message)
 
 
+def find_divergence(values_dict, threshold=5):
+    print("\n" + ", ".join(f"{key}: {value}" for key, value in values_dict.items()))
+    max_key = max(values_dict, key=values_dict.get)
+    max_value = values_dict[max_key]
+
+    outliers = []
+    for key, value in values_dict.items():
+        diff_percent = ((max_value - value) / max_value) * 100
+        if diff_percent > threshold:
+            outliers.append({"name": key, "value": value, "diff_percent": diff_percent})
+
+    outliers_dict = {"max_name": max_key, "max_value": max_value, "outliers": outliers}
+
+    calculate_divergence(outliers_dict)
+
+
+def calculate_divergence(result):
+    if result["outliers"]:
+        print(f"\nValore massimo: {result['max_name']} = {result['max_value']}")
+        print("Valori fuori soglia:")
+        for outlier in result["outliers"]:
+            print(
+                f"- {outlier['name']} = {outlier['value']} "
+                f"(differenza {outlier['diff_percent']:.2f}%)"
+            )
+            notification(
+                f"Valore massimo: {result['max_name']} = {result['max_value']}\n"
+                f"Valori fuori soglia:\n"
+                f"- {outlier['name']} = {outlier['value']} "
+                f"(differenza {outlier['diff_percent']:.2f}%)"
+            )
+    else:
+        print("✅ Tutti i valori sono entro la soglia")
+
+
 def compare_prices(tokens, session: requests.Session):
     prices = get_prices(tokens, session)
     one_hundred_dollars = {token: 100 / float(price) for token, price in prices.items()}
 
-    print(one_hundred_dollars['hive'])
-    sys.exit(1)
+    one_hundred_dollars_hive = (
+        one_hundred_dollars["ethereum"]
+        / float(get_he_price("SWAP.HIVE:SWAP.ETH", session))
+        * 0.992
+    )
 
     spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
     spl_prices = []
@@ -86,19 +124,26 @@ def compare_prices(tokens, session: requests.Session):
         spl_prices.append(spl_price)
 
     sps_amount, dec_amount = (
-        one_hundred_dollars['hive'] * float(price) 
-        for price in spl_prices
+        one_hundred_dollars_hive * float(price) for price in spl_prices
     )
 
-    bridge.AMOUNT_IN = str(one_hundred_dollars['ethereum'])
+    bridge.AMOUNT_IN = str(one_hundred_dollars["ethereum"])
     bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = bridge.get_quote()
 
-    print(
-        f"SPS: {sps_amount}, bscSPS: {bscSPS}, baseSPS: {baseSPS}, ethSPS: {ethSPS}, "
-        f"DEC: {dec_amount}, bscDEC: {bscDEC}, ethDEC: {ethDEC}"
-    )
+    sps_values = {
+        "SPS": sps_amount,
+        "bscSPS": bscSPS,
+        "baseSPS": baseSPS,
+        "ethSPS": ethSPS,
+    }
 
-    '''
+    sps_outliers = find_divergence(sps_values)
+
+    dec_values = {"DEC": dec_amount, "bscDEC": bscDEC, "ethDEC": ethDEC}
+
+    dec_outliers = find_divergence(dec_values)
+
+    """
     threshold = 1.17
     fee = 0.895
 
@@ -110,7 +155,7 @@ def compare_prices(tokens, session: requests.Session):
         notification(f"ARB: {arb_leo_amount}, H-E: {he_leo_amount}. Sell {arb_leo_amount * fee} on H-E")
     else:
         print("Nothing to see here")
-    '''
+    """
 
 
 if __name__ == "__main__":

@@ -69,16 +69,18 @@ def notification(content):
     get_response("POST", webhook_url, session, json=message)
 
 
-def find_divergence(values_dict, threshold=5):
+def find_divergence(values_dict, threshold=3):
     print("\n" + ", ".join(f"{key}: {value}" for key, value in values_dict.items()))
     max_key = max(values_dict, key=values_dict.get)
-    max_value = values_dict[max_key]
+    max_value = values_dict[max_key]    
 
     outliers = []
     for key, value in values_dict.items():
+        if key == "ethDEC" or max_key == "ethDEC":
+            threshold = 5         
         diff_percent = ((max_value - value) / max_value) * 100
         if diff_percent > threshold:
-            outliers.append({"name": key, "value": value, "diff_percent": diff_percent})
+            outliers.append({"name": key, "value": value, "diff_percent": diff_percent})      
 
     outliers_dict = {"max_name": max_key, "max_value": max_value, "outliers": outliers}
 

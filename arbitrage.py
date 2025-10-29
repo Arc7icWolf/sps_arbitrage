@@ -81,7 +81,7 @@ def find_divergence(values_dict, threshold=3):
         if diff_percent > threshold:
             outliers.append({"name": key, "value": value, "diff_percent": diff_percent})
 
-    if not outliers:
+    if not outliers and "bscDEC" in values_dict:
         threshold = 3
         max_key = max(['bscDEC', 'DEC'], key=values_dict.get)
         max_value = values_dict[max_key]

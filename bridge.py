@@ -27,7 +27,7 @@ def simulate_swap(inputs, key):
 
 
 def pancakeswap(page, key):
-    page.wait_for_selector('input[title="Token Amount"]', timeout=15000)
+    page.wait_for_selector('input[title="Token Amount"]', timeout=30000)
     inputs = page.locator('input[title="Token Amount"]')
 
     amount = simulate_swap(inputs, key)

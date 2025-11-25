@@ -23,6 +23,7 @@ def simulate_swap(inputs, key):
         time.sleep(1)
     else:
         print("❌ Timeout: non sono riuscito a leggere il risultato dello swap.")
+        return 0
 
 
 def pancakeswap(page, key):

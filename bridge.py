@@ -87,8 +87,8 @@ def get_quote():
                 tokens_amount.append(amount)
 
                 # Screenshot di debug
-                # page.screenshot(path=f"{d['dex']}_result.png")
-                # print(f"📸 Screenshot salvato come {d['dex']}_result.png")
+                # page.screenshot(path=f"{route['dex']}_result.png")
+                # print(f"📸 Screenshot salvato come {route['dex']}_result.png")
 
         browser.close()
 

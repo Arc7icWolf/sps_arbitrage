@@ -107,6 +107,8 @@ def calculate_divergence(result):
                 f"- {outlier['name']} = {outlier['value']} "
                 f"(differenza {outlier['diff_percent']:.2f}%)"
             )
+            if outlier['diff_percent'] > 90:
+                continue
             notification(
                 f"Valore massimo: {result['max_name']} = {result['max_value']}\n"
                 f"Valori fuori soglia:\n"

@@ -98,6 +98,18 @@ def find_divergence(values_dict, threshold=3):
             if diff_percent > threshold:
                 outliers.append({"name": key, "value": value, "diff_percent": diff_percent})
 
+    if not outliers and "bscSPS" in values_dict:
+        threshold = 3
+        max_key = max(['bscSPS', 'baseSPS', 'SPS'], key=values_dict.get)
+        max_value = values_dict[max_key]
+
+        for key, value in values_dict.items():
+            if key == "spsDEC":
+                continue         
+            diff_percent = ((max_value - value) / max_value) * 100
+            if diff_percent > threshold:
+                outliers.append({"name": key, "value": value, "diff_percent": diff_percent})
+
     outliers_dict = {"max_name": max_key, "max_value": max_value, "outliers": outliers}
 
     calculate_divergence(outliers_dict)

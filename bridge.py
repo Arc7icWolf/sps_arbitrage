@@ -35,8 +35,11 @@ def pancakeswap(page, key):
 
 
 def aerodrome(page, key):
-    page.wait_for_selector('input[data-testid^="swapper-asset-input"]', timeout=15000)
-    inputs = page.locator('input[data-testid^="swapper-asset-input"]')
+    try:
+        page.wait_for_selector('input[data-testid^="swapper-asset-input"]', timeout=15000)
+        inputs = page.locator('input[data-testid^="swapper-asset-input"]')
+    except PlaywrightTimeoutError:
+        return 0
 
     amount = simulate_swap(inputs, key)
     return amount

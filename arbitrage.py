@@ -76,7 +76,12 @@ def find_divergence(values_dict, threshold=3):
 
     outliers = []
     for key, value in values_dict.items():
-        threshold = 5 if key == "ethDEC" or max_key == "ethDEC" else 3         
+        if key == "ethSPS" or max_key == "ethSPS":
+            threshold = 6
+        elif key == "ethDEC" or max_key == "ethDEC":
+            threshold = 5
+        else:
+            threshold = 3         
         diff_percent = ((max_value - value) / max_value) * 100
         if diff_percent > threshold:
             outliers.append({"name": key, "value": value, "diff_percent": diff_percent})

@@ -28,12 +28,42 @@ def simulate_swap(inputs, key):
         return 0
 
 
-def pancakeswap(page, key):
-    page.wait_for_selector('input[title="Token Amount"]', timeout=30000)
-    inputs = page.locator('input[title="Token Amount"]')
+def pancakeswap(browser, key, url):
+    max_attempts = 20  # 20 tentativi da 3s = 60s
 
-    amount = simulate_swap(inputs, key)
-    return amount
+    for attempt in range(max_attempts):
+        # Apri nuova pagina pulita
+        page = browser.new_page()
+        page.set_default_timeout(90000)
+
+        # Vai alla pagina PancakeSwap
+        page.goto(url, wait_until="domcontentloaded")
+
+        # Aspetta l'input
+        page.wait_for_selector('input[title="Token Amount"]', timeout=30000)
+        inputs = page.locator('input[title="Token Amount"]')
+
+        # Simula lo swap
+        amount = simulate_swap(inputs, key)
+
+        # Screenshot di debug
+        page.screenshot(path="pkswap_result.png")
+        print(f"📸 Screenshot di debug per pancakeswap (tentativo {attempt + 1})")
+
+        # Chiudi la pagina
+        page.close()
+
+        # Se amount > 1, restituiscilo
+        if float(amount) > 1:
+            return amount
+
+        # Altrimenti aspetta 3 secondi e riprova
+        print("⏳ PancakeSwap non pronto, valore = 0. Riprovo tra 3s...")
+        time.sleep(3)
+
+    # Timeout totale
+    print("⛔ Timeout: PancakeSwap non ha fornito un valore valido.")
+    return None
 
 
 def aerodrome(page, key):
@@ -84,7 +114,7 @@ def get_quote():
 
                 match route["dex"]:
                     case "pancakeswap":
-                        amount = pancakeswap(page, key)
+                        amount = pancakeswap(browser, key, route["url"])
                     case "aerodrome":
                         amount = aerodrome(page, key)
                     case "uniswap":

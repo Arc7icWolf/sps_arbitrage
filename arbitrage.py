@@ -142,14 +142,15 @@ def calculate_divergence(result):
 def compare_prices(tokens, session: requests.Session):
     prices = get_prices(tokens, session)
     dollars = {token: 50 / float(price) for token, price in prices.items()}
-    print(f"dollars: {dollars}")
 
+    # DEPRECATED
+    '''
     dollars_hive = (
         dollars["ethereum"]
         / float(get_he_price("SWAP.HIVE:SWAP.ETH", session))
         * 0.992
     )
-    print(f"dollars_hive: {dollars_hive}")
+    '''
 
     spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
     spl_prices = []
@@ -158,10 +159,10 @@ def compare_prices(tokens, session: requests.Session):
         spl_prices.append(spl_price)
 
     sps_amount, dec_amount = (
-        dollars_hive * float(price) for price in spl_prices
+        dollars['hive'] * float(price) for price in spl_prices
     )
 
-    bridge.AMOUNT_IN = str(dollars["ethereum"])
+    bridge.AMOUNT_IN = str(dollars['ethereum'])
     bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = bridge.get_quote()
 
     sps_values = {

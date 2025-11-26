@@ -59,7 +59,7 @@ def pancakeswap(browser, key, url):
 
     # Timeout totale
     print("⛔ Timeout: PancakeSwap non ha fornito un valore valido.")
-    return None
+    return 0
 
 
 def aerodrome(page, key):

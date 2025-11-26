@@ -46,10 +46,6 @@ def pancakeswap(browser, key, url):
         # Simula lo swap
         amount = simulate_swap(inputs, key)
 
-        # Screenshot di debug
-        page.screenshot(path="pkswap_result.png")
-        print(f"📸 Screenshot di debug per pancakeswap (tentativo {attempt + 1})")
-
         # Chiudi la pagina
         page.close()
 

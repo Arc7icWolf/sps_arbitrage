@@ -142,12 +142,14 @@ def calculate_divergence(result):
 def compare_prices(tokens, session: requests.Session):
     prices = get_prices(tokens, session)
     dollars = {token: 50 / float(price) for token, price in prices.items()}
+    print(f"dollars: {dollars}")
 
     dollars_hive = (
         dollars["ethereum"]
         / float(get_he_price("SWAP.HIVE:SWAP.ETH", session))
         * 0.992
     )
+    print(f"dollars_hive: {dollars_hive}")
 
     spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
     spl_prices = []

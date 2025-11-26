@@ -1,6 +1,8 @@
 """ISTRUZIONI per usare headless=False su VSC Online
 1) sudo apt-get update && sudo apt-get install -y xvfb
-2) xvfb-run -s "-screen 0 1920x1080x24" python bridge.py
+2) python3 -m playwright install chromium
+3) python3 -m playwright install-deps
+4) xvfb-run -s "-screen 0 1920x1080x24" python bridge.py
 """
 
 from playwright.sync_api import sync_playwright

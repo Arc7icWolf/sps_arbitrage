@@ -107,7 +107,7 @@ def find_divergence(values_dict, threshold=3):
         max_value = values_dict[max_key]
 
         for key, value in values_dict.items():
-            if key == "spsDEC":
+            if key == "ethSPS":
                 continue         
             diff_percent = ((max_value - value) / max_value) * 100
             if diff_percent > threshold:

@@ -31,17 +31,9 @@ def simulate_swap(inputs, key):
 def pancakeswap(page, key):
     page.wait_for_selector('input[title="Token Amount"]', timeout=30000)
     inputs = page.locator('input[title="Token Amount"]')
-    
-    for _ in range(20):
-        amount = simulate_swap(inputs, key)
-        if float(amount) != 0:
-            return amount
 
-        print("⏳ PancakeSwap non pronto, valore = 0. Riprovo tra 3s...")
-        page.wait_for_timeout(3000)
-
-    print("⛔ Timeout: PancakeSwap non ha fornito un valore valido.")
-    return None
+    amount = simulate_swap(inputs, key)
+    return amount
 
 
 def aerodrome(page, key):
@@ -87,6 +79,7 @@ def get_quote():
         for key, route_list in routes.items():
             for route in route_list:
                 print(f"🌐 Apro {route['dex']}...")
+                page = browser.new_page()
                 page.goto(route["url"], wait_until="domcontentloaded", timeout=30000)
 
                 match route["dex"]:

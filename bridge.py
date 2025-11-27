@@ -32,7 +32,7 @@ def run_dex_query(browser, url, simulate_fn, dex, wait_selector, input_selector,
     """
     browser      = istanza Playwright
     url          = URL della pagina
-    simulate_fn  = funzione personalizzata del DEX (inputs, page, key) -> amount
+    simulate_fn  = funzione personalizzata del DEX (inputs) -> amount
     """
     for attempt in range(max_attempts):
         print(f"Procedo con il tentativo n. {attempt + 1}...")

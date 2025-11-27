@@ -20,7 +20,7 @@ def simulate_swap(inputs):
     for i in range(10):
         value = inputs.nth(1).get_attribute("value")
         if value and float(value) > 0:
-            # print(f"💰 Risultato swap: {value} {key.upper()}")
+            # print(f"💰 Risultato swap: {value}")
             return float(value)
         time.sleep(1)
     else:

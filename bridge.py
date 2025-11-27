@@ -2,22 +2,22 @@
 1) sudo apt-get update && sudo apt-get install -y xvfb
 2) python3 -m playwright install chromium
 3) python3 -m playwright install-deps
-4) xvfb-run -s "-screen 0 1920x1080x24" python bridge.py
+4) xvfb-run -s "-screen 0 1920x1080x24" python arbitrage.py
 """
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError
 import time
 import json
 
 AMOUNT_IN = "1"
 
-def simulate_swap(inputs, key):
+def simulate_swap(inputs):
     # print(f"✏️ Inserisco {AMOUNT_IN} nel campo 'from'...")
     inputs.nth(0).fill(AMOUNT_IN)
 
     # print("⏳ Attendo calcolo dello swap...")
     time.sleep(3)
-    for i in range(15):
+    for i in range(10):
         value = inputs.nth(1).get_attribute("value")
         if value and float(value) > 0:
             # print(f"💰 Risultato swap: {value} {key.upper()}")
@@ -28,57 +28,78 @@ def simulate_swap(inputs, key):
         return 0
 
 
-def pancakeswap(browser, key, url):
-    max_attempts = 20  # 20 tentativi da 3s = 60s
-
+def run_dex_query(browser, url, simulate_fn, dex, wait_selector, input_selector, max_attempts=10):
+    """
+    browser      = istanza Playwright
+    url          = URL della pagina
+    simulate_fn  = funzione personalizzata del DEX (inputs, page, key) -> amount
+    """
     for attempt in range(max_attempts):
-        # Apri nuova pagina pulita
+        print(f"Procedo con il tentativo n. {attempt + 1}...")
         page = browser.new_page()
         page.set_default_timeout(90000)
 
-        # Vai alla pagina PancakeSwap
         page.goto(url, wait_until="domcontentloaded")
 
-        # Aspetta l'input
-        page.wait_for_selector('input[title="Token Amount"]', timeout=30000)
-        inputs = page.locator('input[title="Token Amount"]')
+        try:
+            page.wait_for_selector(wait_selector, timeout=30000)
+            inputs = page.locator(input_selector)
+        except TimeoutError:
+            page.close()
+            print("La pagina non risponde... ritento")
+            continue
 
-        # Simula lo swap
-        amount = simulate_swap(inputs, key)
+        # 🟢 Chiamata alla logica specifica del DEX
+        print("Simulo lo swap...")
+        amount = simulate_fn(inputs)
 
-        # Chiudi la pagina
+        page.screenshot(path=f"{dex}_attempt_{attempt + 1}.png")
         page.close()
 
-        # Se amount > 1, restituiscilo
         if float(amount) > 1:
             return amount
 
-        # Altrimenti aspetta 3 secondi e riprova
-        print("⏳ PancakeSwap non pronto, valore = 0. Riprovo tra 3s...")
+        print("⏳ Non pronto, valore = 0. Riprovo tra 3s...")
         time.sleep(3)
 
-    # Timeout totale
-    print("⛔ Timeout: PancakeSwap non ha fornito un valore valido.")
+    print("⛔ Timeout: nessun valore valido.")
     return 0
 
 
-def aerodrome(page, key):
-    try:
-        page.wait_for_selector('input[data-testid^="swapper-asset-input"]', timeout=15000)
-        inputs = page.locator('input[data-testid^="swapper-asset-input"]')
-    except PlaywrightTimeoutError:
-        return 0
+def pancakeswap(browser, url):
+    DEX = "pancakeswap"
+    WAIT_SELECTOR = "input[title='Token Amount']"
+    INPUT_SELECTOR = "input[title='Token Amount']"
 
-    amount = simulate_swap(inputs, key)
-    return amount
+    def simulate_pcs(inputs):
+        # Eventuale logica personalizzata
+        return simulate_swap(inputs)
+    print("Avvio pancakeswap")
+    return run_dex_query(browser, url, simulate_pcs, DEX, WAIT_SELECTOR, INPUT_SELECTOR)
 
 
-def uniswap(page, key):
-    page.wait_for_selector('input[data-testid="amount-input-in"]', timeout=15000)
-    inputs = page.locator('input[data-testid^="amount-input"]')
+def aerodrome(browser, url):
+    DEX = "aerodrome"
+    WAIT_SELECTOR = "input[data-testid^='swapper-asset-input']"
+    INPUT_SELECTOR = "input[data-testid^='swapper-asset-input']"
 
-    amount = simulate_swap(inputs, key)
-    return amount
+    def simulate_aero(inputs):
+        # Eventuale logica personalizzata
+        return simulate_swap(inputs)
+    print("Avvio aerodrome")
+    return run_dex_query(browser, url, simulate_aero, DEX, WAIT_SELECTOR, INPUT_SELECTOR)
+
+
+def uniswap(browser, url):
+    DEX = "uniswap"
+    WAIT_SELECTOR = "input[data-testid='amount-input-in']"
+    INPUT_SELECTOR = "input[data-testid^='amount-input']"
+
+    def simulate_uni(inputs):
+        # Eventuale logica personalizzata
+        return simulate_swap(inputs)
+    print("Avvio uniswap")
+    return run_dex_query(browser, url, simulate_uni, DEX, WAIT_SELECTOR, INPUT_SELECTOR)
 
 
 def get_quote():
@@ -91,36 +112,23 @@ def get_quote():
             args=["--disable-blink-features=AutomationControlled"],
         )
 
-        page = browser.new_page()
-        page.set_default_timeout(90000)  # Timeout globale di 90s
-
-        # Fase di "warm-up"
-        page.goto("https://example.com", wait_until="domcontentloaded")
-
         with open("routes.json") as f:
             routes = json.load(f)
 
         tokens_amount = []
 
-        for key, route_list in routes.items():
+        for _, route_list in routes.items():
             for route in route_list:
                 print(f"🌐 Apro {route['dex']}...")
-                page = browser.new_page()
-                page.goto(route["url"], wait_until="domcontentloaded", timeout=30000)
-
                 match route["dex"]:
                     case "pancakeswap":
-                        amount = pancakeswap(browser, key, route["url"])
+                        amount = pancakeswap(browser, route["url"])
                     case "aerodrome":
-                        amount = aerodrome(page, key)
+                        amount = aerodrome(browser, route["url"])
                     case "uniswap":
-                        amount = uniswap(page, key)
+                        amount = uniswap(browser, route["url"])
 
                 tokens_amount.append(amount)
-
-                # Screenshot di debug
-                # page.screenshot(path=f"{route['dex']}_result.png")
-                # print(f"📸 Screenshot salvato come {route['dex']}_result.png")
 
         browser.close()
 

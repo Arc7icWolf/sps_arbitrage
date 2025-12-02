@@ -12,6 +12,15 @@ if not USER_ID:
 
 USER_ID = 500357318613925889
 
+THRESHOLDS = {
+    ("ethSPS", "*"): 8,       # il token confrontato è ethSPS
+    ("*", "ethSPS"): 6,       # il token più alto è ethSPS
+    ("ethDEC", "*"): 5,       # il token confrontato è ethDEC
+    ("*", "ethDEC"): 5,       # il token più alto è ethDEC
+}
+
+DEFAULT_THRESHOLD = 3
+
 
 def get_response(method, url, session: requests.Session, json=None):
     try:
@@ -69,53 +78,48 @@ def notification(content):
     get_response("POST", webhook_url, session, json=message)
 
 
-def find_divergence(values_dict, threshold=3):
-    print("\n" + ", ".join(f"{key}: {value}" for key, value in values_dict.items()))
+def get_threshold(token, max_token):
+    # Regola 1: token specifico + max specifico
+    if (token, max_token) in THRESHOLDS:
+        return THRESHOLDS[(token, max_token)]
+
+    # Regola 2: token specifico + max qualunque
+    if (token, "*") in THRESHOLDS:
+        return THRESHOLDS[(token, "*")]
+
+    # Regola 3: token qualunque + max specifico
+    if ("*", max_token) in THRESHOLDS:
+        return THRESHOLDS[("*", max_token)]
+
+    # Regola 4: fallback
+    return DEFAULT_THRESHOLD
+
+
+def find_divergence(values_dict):
+    print("\n" + ", ".join(f"{k}: {v}" for k, v in values_dict.items()))
+
     max_key = max(values_dict, key=values_dict.get)
-    max_value = values_dict[max_key]    
+    max_value = values_dict[max_key]
 
     outliers = []
+
     for key, value in values_dict.items():
-        if key == "ethSPS":
-            threshold = 8
-        elif max_key == "ethSPS":
-            threshold = 6
-        elif key == "ethDEC" or max_key == "ethDEC":
-            threshold = 5
-        else:
-            threshold = 3 
-            
+        threshold = get_threshold(key, max_key)
         diff_percent = ((max_value - value) / max_value) * 100
+
         if diff_percent > threshold:
-            outliers.append({"name": key, "value": value, "diff_percent": diff_percent})
+            outliers.append({
+                "name": key,
+                "value": value,
+                "diff_percent": diff_percent,
+                "threshold": threshold,
+            })
 
-    if not outliers and "bscDEC" in values_dict:
-        threshold = 3
-        max_key = max(['bscDEC', 'DEC'], key=values_dict.get)
-        max_value = values_dict[max_key]
-
-        for key, value in values_dict.items():
-            if key == "ethDEC":
-                continue         
-            diff_percent = ((max_value - value) / max_value) * 100
-            if diff_percent > threshold:
-                outliers.append({"name": key, "value": value, "diff_percent": diff_percent})
-
-    if not outliers and "bscSPS" in values_dict:
-        threshold = 3
-        max_key = max(['bscSPS', 'baseSPS', 'SPS'], key=values_dict.get)
-        max_value = values_dict[max_key]
-
-        for key, value in values_dict.items():
-            if key == "ethSPS":
-                continue         
-            diff_percent = ((max_value - value) / max_value) * 100
-            if diff_percent > threshold:
-                outliers.append({"name": key, "value": value, "diff_percent": diff_percent})
-
-    outliers_dict = {"max_name": max_key, "max_value": max_value, "outliers": outliers}
-
-    calculate_divergence(outliers_dict)
+    calculate_divergence({
+        "max_name": max_key,
+        "max_value": max_value,
+        "outliers": outliers,
+    })
 
 
 def calculate_divergence(result):

@@ -12,15 +12,6 @@ if not USER_ID:
 
 USER_ID = 500357318613925889
 
-THRESHOLDS = {
-    ("ethSPS", "*"): 8,       # il token confrontato è ethSPS
-    ("*", "ethSPS"): 6,       # il token più alto è ethSPS
-    ("ethDEC", "*"): 5,       # il token confrontato è ethDEC
-    ("*", "ethDEC"): 5,       # il token più alto è ethDEC
-}
-
-DEFAULT_THRESHOLD = 3
-
 
 def get_response(method, url, session: requests.Session, json=None):
     try:
@@ -78,68 +69,80 @@ def notification(content):
     get_response("POST", webhook_url, session, json=message)
 
 
-def get_threshold(token, max_token):
-    # Regola 1: token specifico + max specifico
-    if (token, max_token) in THRESHOLDS:
-        return THRESHOLDS[(token, max_token)]
+def load_rules(filepath="rules.json"):
+    with open(filepath, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    # Regola 2: token specifico + max qualunque
-    if (token, "*") in THRESHOLDS:
-        return THRESHOLDS[(token, "*")]
 
-    # Regola 3: token qualunque + max specifico
-    if ("*", max_token) in THRESHOLDS:
-        return THRESHOLDS[("*", max_token)]
+RULES = load_rules()
 
-    # Regola 4: fallback
-    return DEFAULT_THRESHOLD
+
+def get_threshold(token_max, token_min, percent_diff):
+
+    # ---- 1) Regola per coppia specifica ----
+    pair_key = f"{token_max}-{token_min}"
+    if pair_key in RULES["pairs"]:
+        return percent_diff >= RULES["pairs"][pair_key]
+
+    # ---- 2) Regola se il token maggiore ha una soglia ----
+    if token_max in RULES["when_max"]:
+        return percent_diff >= RULES["when_max"][token_max]
+
+    # ---- 3) Regola se il token minore ha una soglia ----
+    if token_min in RULES["when_min"]:
+        return percent_diff >= RULES["when_min"][token_min]
+
+    # ---- 4) Default ----
+    return percent_diff >= RULES["default"]
 
 
 def find_divergence(values_dict):
     print("\n" + ", ".join(f"{k}: {v}" for k, v in values_dict.items()))
+    results = []
+    keys = list(values_dict.keys())
+    n = len(keys)
 
-    max_key = max(values_dict, key=values_dict.get)
-    max_value = values_dict[max_key]
+    for i in range(n):
+        key_a = keys[i]
+        val_a = values_dict[key_a]
 
-    outliers = []
+        for j in range(i + 1, n):
+            key_b = keys[j]
+            val_b = values_dict[key_b]
 
-    for key, value in values_dict.items():
-        threshold = get_threshold(key, max_key)
-        diff_percent = ((max_value - value) / max_value) * 100
+            # Trova max e min
+            if val_a >= val_b:
+                max_key, max_val = key_a, val_a
+                min_key, min_val = key_b, val_b
+            else:
+                max_key, max_val = key_b, val_b
+                min_key, min_val = key_a, val_a
 
-        if diff_percent > threshold:
-            outliers.append({
-                "name": key,
-                "value": value,
-                "diff_percent": diff_percent,
-                "threshold": threshold,
-            })
+            percent_diff = (max_val - min_val) / max_val * 100 if max_val else 0
 
-    calculate_divergence({
-        "max_name": max_key,
-        "max_value": max_value,
-        "outliers": outliers,
-    })
+            if get_threshold(max_key, min_key, percent_diff):
+                results.append(
+                    {
+                        "token_max": {"key": max_key, "value": max_val},
+                        "token_min": {"key": min_key, "value": min_val},
+                        "percent_diff": percent_diff,
+                    }
+                )
+
+    results.sort(key=lambda x: x["percent_diff"], reverse=True)
+
+    format_results(results)
 
 
-def calculate_divergence(result):
-    if result["outliers"]:
-        print(f"\nValore massimo: {result['max_name']} = {result['max_value']}")
-        print("Valori fuori soglia:")
-        for outlier in result["outliers"]:
-            print(
-                f"- {outlier['name']} = {outlier['value']} "
-                f"(differenza {outlier['diff_percent']:.2f}%)"
-            )
-            if outlier['diff_percent'] > 90:
-                continue
-            notification(
-                f"Valore massimo: {result['max_name']} = {result['max_value']}\n"
-                f"Valori fuori soglia:\n"
-                f"- {outlier['name']} = {outlier['value']} "
-                f"(differenza {outlier['diff_percent']:.2f}%)"
-            )
-    else:
+def format_results(results):
+    for r in results:
+        max_token = r["token_max"]["key"]
+        min_token = r["token_min"]["key"]
+        percent_diff = r["percent_diff"]
+        message = f'Acquista "{max_token}" ---> vendi "{min_token}" === differenza {percent_diff:.2f}%'
+        print(message)
+        notification(message)
+    if not results:
         print("✅ Tutti i valori sono entro la soglia")
 
 
@@ -148,13 +151,13 @@ def compare_prices(tokens, session: requests.Session):
     dollars = {token: 50 / float(price) for token, price in prices.items()}
 
     # DEPRECATED
-    '''
+    """
     dollars_hive = (
         dollars["ethereum"]
         / float(get_he_price("SWAP.HIVE:SWAP.ETH", session))
         * 0.992
     )
-    '''
+    """
 
     spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
     spl_prices = []
@@ -162,11 +165,9 @@ def compare_prices(tokens, session: requests.Session):
         spl_price = get_he_price(spl_token, session)
         spl_prices.append(spl_price)
 
-    sps_amount, dec_amount = (
-        dollars['hive'] * float(price) for price in spl_prices
-    )
+    sps_amount, dec_amount = (dollars["hive"] * float(price) for price in spl_prices)
 
-    bridge.AMOUNT_IN = str(dollars['ethereum'])
+    bridge.AMOUNT_IN = str(dollars["ethereum"])
     bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = bridge.get_quote()
 
     sps_values = {

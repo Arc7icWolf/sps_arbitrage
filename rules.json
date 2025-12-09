@@ -8,7 +8,7 @@
 
     "when_min": {
         "ethSPS": 8,
-        "ethDEC": 5
+        "ethDEC": 6
     },
 
     "pairs": {

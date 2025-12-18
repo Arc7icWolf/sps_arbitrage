@@ -60,7 +60,7 @@ def get_prices(tokens, session: requests.Session):
     return prices
 
 
-def get_hive_price():
+def get_hive_price(session: requests.Session):
     urls = [
         "https://api.deathwing.me",
         "https://api.hive.blog",
@@ -69,7 +69,7 @@ def get_hive_price():
     ]
     for url in urls:
         data = {"jsonrpc": "2.0", "method": "market_history_api.get_ticker", "id": 1}
-        hive_price = get_response("POST", url, json=data).get("result", [])
+        hive_price = get_response("POST", url, json=data).get("result", [], session)
         if not hive_price or len(hive_price) == 0:
             continue
         return hive_price["latest"]
@@ -162,7 +162,7 @@ def format_results(results):
 
 
 def compare_prices(tokens, session: requests.Session):
-    hive_price = get_hive_price()
+    hive_price = get_hive_price(session)
     prices = get_prices(tokens, session)
 
     dollars_hive = 100 / float(hive_price)

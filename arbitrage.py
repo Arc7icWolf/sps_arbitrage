@@ -69,7 +69,7 @@ def get_hive_price(session: requests.Session):
     ]
     for url in urls:
         data = {"jsonrpc": "2.0", "method": "market_history_api.get_ticker", "id": 1}
-        response = get_response("POST", url, json=data, session)
+        response = get_response("POST", url, session, json=data)
         hive_price = response.get("result") if response else None
         if not hive_price:
             continue

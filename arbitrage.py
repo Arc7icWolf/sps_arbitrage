@@ -166,7 +166,7 @@ def compare_prices(tokens, session: requests.Session):
     hive_price = get_hive_price(session)
     prices = get_prices(tokens, session)
 
-    dollars_hive = 100 / float(hive_price)
+    dollars_hive = 50 / float(hive_price)
     dollars = {token: 50 / float(price) for token, price in prices.items()}
 
     # DEPRECATED

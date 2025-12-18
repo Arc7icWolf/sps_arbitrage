@@ -69,8 +69,9 @@ def get_hive_price(session: requests.Session):
     ]
     for url in urls:
         data = {"jsonrpc": "2.0", "method": "market_history_api.get_ticker", "id": 1}
-        hive_price = get_response("POST", url, json=data).get("result", [], session)
-        if not hive_price or len(hive_price) == 0:
+        response = get_response("POST", url, json=data, session)
+        hive_price = response.get("result") if response else None
+        if not hive_price:
             continue
         return hive_price["latest"]
 

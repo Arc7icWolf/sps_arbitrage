@@ -169,6 +169,9 @@ def compare_prices(tokens, session: requests.Session):
     dollars_hive = 50 / float(hive_price)
     dollars = {token: 50 / float(price) for token, price in prices.items()}
 
+    print(dollars_hive)
+    print(dollars['ethereum'])
+
     # DEPRECATED
     """
     dollars_hive = (

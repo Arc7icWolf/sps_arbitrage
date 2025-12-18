@@ -60,6 +60,21 @@ def get_prices(tokens, session: requests.Session):
     return prices
 
 
+def get_hive_price():
+    urls = [
+        "https://api.deathwing.me",
+        "https://api.hive.blog",
+        "https://hive-api.arcange.eu",
+        "https://api.openhive.network",
+    ]
+    for url in urls:
+        data = {"jsonrpc": "2.0", "method": "market_history_api.get_ticker", "id": 1}
+        hive_price = get_response("POST", url, json=data).get("result", [])
+        if not hive_price or len(hive_price) == 0:
+            continue
+        return hive_price["latest"]
+
+
 def notification(content):
     webhook_url = "https://discord.com/api/webhooks/1359216089023906063/9PLtNmPUoSwm8UUStyxZzpxVjALWFdKcULtRF3kBJVBzBsVywnXZ4OmvInk8Tt5IhQdW"
     message = {
@@ -147,7 +162,10 @@ def format_results(results):
 
 
 def compare_prices(tokens, session: requests.Session):
+    hive_price = get_hive_price()
     prices = get_prices(tokens, session)
+
+    dollars_hive = 100 / float(hive_price)
     dollars = {token: 50 / float(price) for token, price in prices.items()}
 
     # DEPRECATED
@@ -165,7 +183,7 @@ def compare_prices(tokens, session: requests.Session):
         spl_price = get_he_price(spl_token, session)
         spl_prices.append(spl_price)
 
-    sps_amount, dec_amount = (dollars["hive"] * float(price) for price in spl_prices)
+    sps_amount, dec_amount = (dollars_hive * float(price) for price in spl_prices)
 
     bridge.AMOUNT_IN = str(dollars["ethereum"])
     bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = bridge.get_quote()
@@ -185,6 +203,6 @@ def compare_prices(tokens, session: requests.Session):
 
 
 if __name__ == "__main__":
-    tokens = ["hive", "ethereum"]
+    tokens = ["ethereum"]
     with requests.Session() as session:
         compare_prices(tokens, session)

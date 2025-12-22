@@ -3,14 +3,10 @@ import requests
 import os
 import bridge
 
-"""
 # Get credentias from Secrets
 USER_ID = os.getenv("USER_ID")
 if not USER_ID:
     raise ValueError("USER_ID not found")
-"""
-
-USER_ID = 500357318613925889
 
 
 def get_response(method, url, session: requests.Session, json=None):
@@ -94,6 +90,11 @@ RULES = load_rules()
 
 
 def get_threshold(token_max, token_min, percent_diff):
+    MAX_DIFF = 90
+
+    # Esclusione immediata
+    if percent_diff > MAX_DIFF:
+        return False
 
     # ---- 1) Regola per coppia specifica ----
     pair_key = f"{token_max}-{token_min}"

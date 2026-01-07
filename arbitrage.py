@@ -2,6 +2,7 @@ import json
 import requests
 import os
 import bridge
+import sys
 
 # Get credentias from Secrets
 USER_ID = os.getenv("USER_ID")
@@ -72,7 +73,7 @@ def get_hive_price(session: requests.Session):
         return hive_price["latest"]
 
 
-def notification(content):
+def notification(content, session: requests.Session):
     webhook_url = "https://discord.com/api/webhooks/1359216089023906063/9PLtNmPUoSwm8UUStyxZzpxVjALWFdKcULtRF3kBJVBzBsVywnXZ4OmvInk8Tt5IhQdW"
     message = {
         "content": f"{content}! <@{USER_ID}>",
@@ -113,7 +114,7 @@ def get_threshold(token_max, token_min, percent_diff):
     return percent_diff >= RULES["default"]
 
 
-def find_divergence(values_dict):
+def find_divergence(values_dict, session: requests.Session):
     print("\n" + ", ".join(f"{k}: {v}" for k, v in values_dict.items()))
     results = []
     keys = list(values_dict.keys())
@@ -148,17 +149,17 @@ def find_divergence(values_dict):
 
     results.sort(key=lambda x: x["percent_diff"], reverse=True)
 
-    format_results(results)
+    format_results(results, session)
 
 
-def format_results(results):
+def format_results(results, session: requests.Session):
     for r in results:
         max_token = r["token_max"]["key"]
         min_token = r["token_min"]["key"]
         percent_diff = r["percent_diff"]
         message = f'Acquista "{max_token}" ---> vendi "{min_token}" === differenza {percent_diff:.2f}%'
         print(message)
-        notification(message)
+        notification(message, session)
     if not results:
         print("✅ Tutti i valori sono entro la soglia")
 
@@ -200,14 +201,17 @@ def compare_prices(tokens, session: requests.Session):
         "ethSPS": ethSPS,
     }
 
-    sps_outliers = find_divergence(sps_values)
+    sps_outliers = find_divergence(sps_values, session)
 
     dec_values = {"DEC": dec_amount, "bscDEC": bscDEC, "ethDEC": ethDEC}
 
-    dec_outliers = find_divergence(dec_values)
+    dec_outliers = find_divergence(dec_values, session)
 
 
 if __name__ == "__main__":
+    
     tokens = ["ethereum"]
     with requests.Session() as session:
+        notification("test", session)
+        sys.exit()
         compare_prices(tokens, session)

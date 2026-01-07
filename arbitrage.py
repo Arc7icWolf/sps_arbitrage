@@ -2,7 +2,6 @@ import json
 import requests
 import os
 import bridge
-import sys
 
 '''
 # Get credentias from Secrets
@@ -216,6 +215,4 @@ if __name__ == "__main__":
     
     tokens = ["ethereum"]
     with requests.Session() as session:
-        notification("test", session)
-        sys.exit()
         compare_prices(tokens, session)

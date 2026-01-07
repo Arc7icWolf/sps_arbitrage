@@ -4,10 +4,14 @@ import os
 import bridge
 import sys
 
+'''
 # Get credentias from Secrets
 USER_ID = os.getenv("USER_ID")
 if not USER_ID:
     raise ValueError("USER_ID not found")
+'''
+
+USER_ID = "500357318613925889"
 
 
 def get_response(method, url, session: requests.Session, json=None):

@@ -4,7 +4,7 @@ import os
 import bridge
 
 '''
-# Get credentias from Secrets
+# Get credentias from Secrets ---> something isn't working properly when adding the secret on GitHub Actions
 USER_ID = os.getenv("USER_ID")
 if not USER_ID:
     raise ValueError("USER_ID not found")

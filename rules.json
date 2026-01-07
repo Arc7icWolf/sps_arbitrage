@@ -1,14 +1,14 @@
 {
-    "default": 0.3,
+    "default": 3,
 
     "when_max": {
-        "ethSPS": 0.6,
-        "ethDEC": 0.5
+        "ethSPS": 6,
+        "ethDEC": 5
     },
 
     "when_min": {
-        "ethSPS": 0.8,
-        "ethDEC": 0.6
+        "ethSPS": 8,
+        "ethDEC": 6
     },
 
     "pairs": {

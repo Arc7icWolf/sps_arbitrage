@@ -3,7 +3,7 @@ name: Run arbitrage.py (Playwright headless=False, ultra-compact)
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"  # ogni mezz'ora
+    - cron: "*/20 * * * *"  # ogni mezz'ora
 
 jobs:
   run_bridge:

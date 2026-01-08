@@ -1,4 +1,4 @@
-name: Run arbitrage.py (Playwright optimized)
+name: Run arbitrage.py (Playwright aligned)
 
 on:
   workflow_dispatch:
@@ -10,23 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: mcr.microsoft.com/playwright/python:v1.40.0-jammy
+      image: mcr.microsoft.com/playwright/python:v1.57.0-jammy
       options: --shm-size=1gb
 
     steps:
-      # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install Python dependencies (no cache, no browsers)
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
           pip install --no-cache-dir -r requirements.txt
 
-      # Run script
-      - name: Run arbitrage.py
+      - name: Run arbitrage.py with Xvfb
         env:
           USER_ID: ${{ secrets.USER_ID }}
         run: |
-          python arbitrage.py
+          xvfb-run -s "-screen 0 1920x1080x24" python arbitrage.py

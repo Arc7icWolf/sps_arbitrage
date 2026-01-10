@@ -2,8 +2,8 @@
     "default": 3,
 
     "when_max": {
-        "ethSPS": 4,
-        "ethDEC": 4
+        "ethSPS": 5,
+        "ethDEC": 5
     },
 
     "when_min": {

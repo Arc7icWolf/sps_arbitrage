@@ -102,7 +102,7 @@ def uniswap(browser, url):
     return run_dex_query(browser, url, simulate_uni, DEX, WAIT_SELECTOR, INPUT_SELECTOR)
 
 
-def get_quote():
+def get_quote(route_name):
     with sync_playwright() as p:
         print("🌐 Avvio browser...")
 
@@ -112,7 +112,7 @@ def get_quote():
             args=["--disable-blink-features=AutomationControlled"],
         )
 
-        with open("routes.json") as f:
+        with open(f"routes_{route_name}.json") as f:
             routes = json.load(f)
 
         tokens_amount = []
@@ -136,4 +136,5 @@ def get_quote():
 
 
 if __name__ == "__main__":
-    get_quote()
+    route_name = "spl" # Test
+    get_quote(route_name)

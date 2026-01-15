@@ -1,0 +1,16 @@
+{
+  "hive": [
+    {
+      "dex": "pancakeswap",
+      "url": "https://pancakeswap.finance/swap?inputCurrency=0x2170ed0880ac9a755fd29b2688956bd959f933f8&outputCurrency=0x4caa77c6e25e08647bc841529d6fa31b71c0dffa&chain=bsc"
+    },
+    {
+      "dex": "aerodrome",
+      "url": "https://aero.drome.eth.limo/swap?from=eth&to=0x4caa77c6e25e08647bc841529d6fa31b71c0dffa&chain0=8453&chain1=8453"
+    },
+    {
+      "dex": "uniswap",
+      "url": "https://app.uniswap.org/swap?inputCurrency=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&outputCurrency=0x6b6B78672795d079A3697a987E1DA5cb3D8eAe38&chain=1"
+    }
+  ]
+}

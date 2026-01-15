@@ -1,0 +1,26 @@
+{
+  "sps": [
+    {
+      "dex": "pancakeswap",
+      "url": "https://pancakeswap.finance/swap?chain=bsc&outputCurrency=0x1633b7157e7638C4d6593436111Bf125Ee74703F&inputCurrency=0x2170Ed0880ac9A755fd29B2688956BD959F933F8"
+    },
+    {
+      "dex": "aerodrome",
+      "url": "https://aero.drome.eth.link/swap?from=eth&to=0x578661e9a09eee6b2cd97d4ded1ccbae7b8516b9&chain0=8453&chain1=8453"
+    },
+    {
+      "dex": "uniswap",
+      "url": "https://app.uniswap.org/swap?inputCurrency=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&outputCurrency=0x00813E3421E1367353BfE7615c7f7f133C89df74&chain=1"
+    }
+  ],
+  "dec": [
+    {
+      "dex": "pancakeswap",
+      "url": "https://pancakeswap.finance/swap?chain=bsc&network=56&network=97&network=1&network=8453&network=204&network=324&network=1101&network=59144&network=42161&search=sps&inputCurrency=0x2170Ed0880ac9A755fd29B2688956BD959F933F8&outputCurrency=0xE9D7023f2132D55cbd4Ee1f78273CB7a3e74F10A"
+    },
+    {
+      "dex": "uniswap",
+      "url": "https://app.uniswap.org/swap?inputCurrency=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&outputCurrency=0x9393fdc77090f31c7db989390d43f454b1a6e7f3&chain=1"
+    }
+  ]
+}

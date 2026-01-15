@@ -2,6 +2,7 @@ import json
 import requests
 import os
 import bridge
+import sys
 
 '''
 # Get credentias from Secrets ---> something isn't working properly when adding the secret on GitHub Actions
@@ -32,7 +33,7 @@ def get_response(method, url, session: requests.Session, json=None):
         return {}
 
 
-def get_he_price(token, session: requests.Session):
+def get_he_price(token, session: requests.Session, target=None):
     url = "https://api.hive-engine.com/rpc/contracts"
     payload = {
         "jsonrpc": "2.0",
@@ -47,7 +48,11 @@ def get_he_price(token, session: requests.Session):
     }
     token_price = get_response("POST", url, session, json=payload)
 
-    return token_price["result"][0]["basePrice"]
+    return (
+        token_price["result"][0]["basePrice"]
+        if target == "base"
+        else token_price["result"][0]["quotePrice"]
+    )
 
 
 def get_prices(tokens, session: requests.Session):
@@ -167,6 +172,52 @@ def format_results(results, session: requests.Session):
         print("✅ Tutti i valori sono entro la soglia")
 
 
+def spl(dollars_hive, dollars):
+    spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
+    spl_prices = []
+    for spl_token in spl_tokens:
+        spl_price = get_he_price(spl_token, session, "base")
+        spl_prices.append(spl_price)
+
+    sps_amount, dec_amount = (dollars_hive * float(price) for price in spl_prices)
+
+    bridge.AMOUNT_IN = str(dollars["ethereum"])
+    bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = bridge.get_quote("spl")
+
+    sps_values = {
+        "SPS": sps_amount,
+        "bscSPS": bscSPS,
+        "baseSPS": baseSPS,
+        "ethSPS": ethSPS,
+    }
+
+    sps_outliers = find_divergence(sps_values, session)
+
+    dec_values = {"DEC": dec_amount, "bscDEC": bscDEC, "ethDEC": ethDEC}
+
+    dec_outliers = find_divergence(dec_values, session)
+
+
+def hive():
+    hive_token = "SWAP.HIVE:SWAP.ETH"
+
+    hive_price = get_he_price(hive_token, session)
+    
+    hive_amount = float(hive_price) * 0.03 * (99.4 / 100) # Reduce amount for price impact and fee
+    bridge.AMOUNT_IN = "0.03"
+
+    bscHIVE, baseHIVE, ethHIVE = bridge.get_quote("hive")
+
+    hive_values = {
+        "HIVE": hive_amount,
+        "bscHIVE": bscHIVE,
+        "baseHIVE": baseHIVE,
+        "ethHIVE": ethHIVE,
+    }
+
+    hive_outliers = find_divergence(hive_values, session)
+
+
 def compare_prices(tokens, session: requests.Session):
     hive_price = get_hive_price(session)
     prices = get_prices(tokens, session)
@@ -186,29 +237,9 @@ def compare_prices(tokens, session: requests.Session):
     )
     """
 
-    spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
-    spl_prices = []
-    for spl_token in spl_tokens:
-        spl_price = get_he_price(spl_token, session)
-        spl_prices.append(spl_price)
+    spl(dollars_hive, dollars)
 
-    sps_amount, dec_amount = (dollars_hive * float(price) for price in spl_prices)
-
-    bridge.AMOUNT_IN = str(dollars["ethereum"])
-    bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = bridge.get_quote()
-
-    sps_values = {
-        "SPS": sps_amount,
-        "bscSPS": bscSPS,
-        "baseSPS": baseSPS,
-        "ethSPS": ethSPS,
-    }
-
-    sps_outliers = find_divergence(sps_values, session)
-
-    dec_values = {"DEC": dec_amount, "bscDEC": bscDEC, "ethDEC": ethDEC}
-
-    dec_outliers = find_divergence(dec_values, session)
+    # hive()
 
 
 if __name__ == "__main__":

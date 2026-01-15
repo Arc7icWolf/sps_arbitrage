@@ -90,16 +90,15 @@ def notification(content, session: requests.Session):
     get_response("POST", webhook_url, session, json=message)
 
 
-def load_rules(filepath="rules.json"):
+def load_rules(token):
+    filepath = f"rules_{token}.json"
     with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-RULES = load_rules()
-
-
-def get_threshold(token_max, token_min, percent_diff):
+def get_threshold(token_max, token_min, percent_diff, token):
     MAX_DIFF = 90
+    rules = load_rules(token)
 
     # Esclusione immediata
     if percent_diff > MAX_DIFF:
@@ -107,22 +106,22 @@ def get_threshold(token_max, token_min, percent_diff):
 
     # ---- 1) Regola per coppia specifica ----
     pair_key = f"{token_max}-{token_min}"
-    if pair_key in RULES["pairs"]:
-        return percent_diff >= RULES["pairs"][pair_key]
+    if pair_key in rules["pairs"]:
+        return percent_diff >= rules["pairs"][pair_key]
 
     # ---- 2) Regola se il token maggiore ha una soglia ----
-    if token_max in RULES["when_max"]:
-        return percent_diff >= RULES["when_max"][token_max]
+    if token_max in rules["when_max"]:
+        return percent_diff >= rules["when_max"][token_max]
 
     # ---- 3) Regola se il token minore ha una soglia ----
-    if token_min in RULES["when_min"]:
-        return percent_diff >= RULES["when_min"][token_min]
+    if token_min in rules["when_min"]:
+        return percent_diff >= rules["when_min"][token_min]
 
     # ---- 4) Default ----
-    return percent_diff >= RULES["default"]
+    return percent_diff >= rules["default"]
 
 
-def find_divergence(values_dict, session: requests.Session):
+def find_divergence(values_dict, session: requests.Session, token):
     print("\n" + ", ".join(f"{k}: {v}" for k, v in values_dict.items()))
     results = []
     keys = list(values_dict.keys())
@@ -146,7 +145,7 @@ def find_divergence(values_dict, session: requests.Session):
 
             percent_diff = (max_val - min_val) / max_val * 100 if max_val else 0
 
-            if get_threshold(max_key, min_key, percent_diff):
+            if get_threshold(max_key, min_key, percent_diff, token):
                 results.append(
                     {
                         "token_max": {"key": max_key, "value": max_val},
@@ -173,6 +172,7 @@ def format_results(results, session: requests.Session):
 
 
 def spl(dollars_hive, dollars):
+    token = "spl"
     spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
     spl_prices = []
     for spl_token in spl_tokens:
@@ -182,7 +182,7 @@ def spl(dollars_hive, dollars):
     sps_amount, dec_amount = (dollars_hive * float(price) for price in spl_prices)
 
     bridge.AMOUNT_IN = str(dollars["ethereum"])
-    bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = bridge.get_quote("spl")
+    bscSPS, baseSPS, ethSPS, bscDEC, ethDEC = bridge.get_quote(token)
 
     sps_values = {
         "SPS": sps_amount,
@@ -191,22 +191,23 @@ def spl(dollars_hive, dollars):
         "ethSPS": ethSPS,
     }
 
-    sps_outliers = find_divergence(sps_values, session)
+    sps_outliers = find_divergence(sps_values, session, token)
 
     dec_values = {"DEC": dec_amount, "bscDEC": bscDEC, "ethDEC": ethDEC}
 
-    dec_outliers = find_divergence(dec_values, session)
+    dec_outliers = find_divergence(dec_values, session, token)
 
 
 def hive():
+    token = "hive"
     hive_token = "SWAP.HIVE:SWAP.ETH"
 
     hive_price = get_he_price(hive_token, session)
     
-    hive_amount = float(hive_price) * 0.03 * (99.4 / 100) # Reduce amount for price impact and fee
+    hive_amount = float(hive_price) * 0.03 * (99.45 / 100) # Reduce amount for price impact and fee
     bridge.AMOUNT_IN = "0.03"
 
-    bscHIVE, baseHIVE, ethHIVE = bridge.get_quote("hive")
+    bscHIVE, baseHIVE, ethHIVE = bridge.get_quote(token)
 
     hive_values = {
         "HIVE": hive_amount,
@@ -215,7 +216,7 @@ def hive():
         "ethHIVE": ethHIVE,
     }
 
-    hive_outliers = find_divergence(hive_values, session)
+    hive_outliers = find_divergence(hive_values, session, token)
 
 
 def compare_prices(tokens, session: requests.Session):
@@ -239,7 +240,7 @@ def compare_prices(tokens, session: requests.Session):
 
     spl(dollars_hive, dollars)
 
-    # hive()
+    hive()
 
 
 if __name__ == "__main__":

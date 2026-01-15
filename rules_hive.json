@@ -1,0 +1,15 @@
+{
+    "default": 5,
+
+    "when_max": {
+        "token1": 5
+    },
+
+    "when_min": {
+        "ethHIVE": 7
+    },
+
+    "pairs": {
+        "token_1-token_2": 2
+    }
+}

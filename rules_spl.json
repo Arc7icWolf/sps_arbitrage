@@ -1,0 +1,17 @@
+{
+    "default": 3,
+
+    "when_max": {
+        "ethSPS": 5,
+        "ethDEC": 5
+    },
+
+    "when_min": {
+        "ethSPS": 8,
+        "ethDEC": 6
+    },
+
+    "pairs": {
+        "token_1-token_2": 2
+    }
+}

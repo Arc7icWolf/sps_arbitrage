@@ -136,5 +136,6 @@ def get_quote(route_name):
 
 
 if __name__ == "__main__":
-    route_name = "spl" # Test
-    get_quote(route_name)
+    route_names = ["spl", "hive"]
+    for name in route_names:
+        get_quote(name)

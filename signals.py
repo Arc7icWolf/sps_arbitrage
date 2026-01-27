@@ -8,9 +8,9 @@ from triggers import check_thresholds
 # PARAMETRI
 # ==============================
 
-WARMUP_SNAPSHOTS = 10      # numero di snapshot per valutare stabilità
+WARMUP_SNAPSHOTS = 3      # numero di snapshot per valutare stabilità
 EPSILON_PERCENT = 0.25    # variazione % massima considerata rumore
-SNAPSHOT_INTERVAL = 6    # secondi tra uno snapshot e l'altro
+SNAPSHOT_INTERVAL = 5    # secondi tra uno snapshot e l'altro
 
 # ==============================
 # SNAPSHOT
@@ -95,14 +95,17 @@ async def main():
                     continue
 
                 delta_pct = (curr - base) / base * 100
-                deltas[pool] = delta_pct
+
+                deltas.setdefault(token, {})[pool] = delta_pct
                 print(f"  {token}: {delta_pct:+.2f}%")
 
         print("-" * 40)
 
-        check_thresholds(deltas)
+        for token, token_deltas in deltas.items():
+            alerts = check_thresholds(token, token_deltas)
 
         await asyncio.sleep(SNAPSHOT_INTERVAL)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

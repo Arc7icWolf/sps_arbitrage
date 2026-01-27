@@ -1,25 +1,34 @@
-from itertools import combinations
-from notify import notify
+from thresholds import THRESHOLDS
 
-THRESHOLD_PERCENT = 3.0
-
-
-def check_thresholds(deltas: dict):
+def check_thresholds(token, deltas):
     """
     deltas = {
-        "pool1": +0.85,
-        "pool2": -4.3,
-        "pool3": +2.1
+        "bsc_sps_wbnb": +0.85,
+        "base_sps_usdc": -4.3,
+        "uniswap_v4_eth": +2.1,
     }
     """
 
-    for (p1, d1), (p2, d2) in combinations(deltas.items(), 2):
-        diff = abs(d1 - d2)
+    if token not in THRESHOLDS:
+        return []
 
-        if diff >= THRESHOLD_PERCENT:
-            notify(
-                f"Delta threshold superato:\n"
-                f"{p1}: {d1:+.2f}%\n"
-                f"{p2}: {d2:+.2f}%\n"
-                f"Diff: {diff:.2f}%"
-            )
+    alerts = []
+
+    for (p1, p2), threshold in THRESHOLDS[token].items():
+        if p1 not in deltas or p2 not in deltas:
+            continue
+
+        diff = abs(deltas[p1] - deltas[p2])
+
+        if diff >= threshold:
+            alerts.append({
+                "token": token,
+                "pool_a": p1,
+                "pool_b": p2,
+                "delta_a": deltas[p1],
+                "delta_b": deltas[p2],
+                "diff": diff,
+                "threshold": threshold,
+            })
+
+    return alerts

@@ -18,20 +18,36 @@ ERC20_ABI = [
     },
 ]
 
+# ==============================
+# GLOBAL CACHE & RATE LIMIT
+# ==============================
+
 _DECIMALS_CACHE = {}
+
+# Limite globale di chiamate RPC concorrenti
+RPC_SEMAPHORE = asyncio.Semaphore(3)
+
+# ==============================
+# ERC20 BALANCE
+# ==============================
 
 async def erc20_balance_async(w3, token, holder):
     contract = w3.eth.contract(address=token, abi=ERC20_ABI)
 
-    if token in _DECIMALS_CACHE:
-        decimals = _DECIMALS_CACHE[token]
-    else:
-        decimals = await contract.functions.decimals().call()
-        _DECIMALS_CACHE[token] = decimals
+    async with RPC_SEMAPHORE:
+        if token in _DECIMALS_CACHE:
+            decimals = _DECIMALS_CACHE[token]
+        else:
+            decimals = await contract.functions.decimals().call()
+            _DECIMALS_CACHE[token] = decimals
 
-    raw = await contract.functions.balanceOf(holder).call()
+        raw = await contract.functions.balanceOf(holder).call()
+
     return raw / (10 ** decimals)
 
+# ==============================
+# POOL READER
+# ==============================
 
 async def read_pool_async(pool_def, tokens_by_chain):
     chain   = pool_def["chain"]

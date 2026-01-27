@@ -12,5 +12,11 @@ CHAINS = {
     },
 }
 
+_ASYNC_W3 = {}
+
 def get_async_web3(chain: str) -> AsyncWeb3:
-    return AsyncWeb3(AsyncHTTPProvider(CHAINS[chain]["rpc"]))
+    if chain not in _ASYNC_W3:
+        provider = AsyncHTTPProvider(CHAINS[chain]["rpc"])
+        _ASYNC_W3[chain] = AsyncWeb3(provider)
+
+    return _ASYNC_W3[chain]

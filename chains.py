@@ -1,4 +1,4 @@
-from web3 import Web3
+from web3 import AsyncWeb3, AsyncHTTPProvider
 
 CHAINS = {
     "bsc": {
@@ -12,5 +12,5 @@ CHAINS = {
     },
 }
 
-def get_web3(chain: str) -> Web3:
-    return Web3(Web3.HTTPProvider(CHAINS[chain]["rpc"]))
+def get_async_web3(chain: str) -> AsyncWeb3:
+    return AsyncWeb3(AsyncHTTPProvider(CHAINS[chain]["rpc"]))

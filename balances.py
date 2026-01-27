@@ -1,5 +1,5 @@
-from web3 import Web3
-from chains import get_web3
+import asyncio
+from chains import get_async_web3
 
 ERC20_ABI = [
     {
@@ -18,23 +18,35 @@ ERC20_ABI = [
     },
 ]
 
-def erc20_balance(w3: Web3, token: str, holder: str) -> float:
+_DECIMALS_CACHE = {}
+
+async def erc20_balance_async(w3, token, holder):
     contract = w3.eth.contract(address=token, abi=ERC20_ABI)
-    decimals = contract.functions.decimals().call()
-    raw = contract.functions.balanceOf(holder).call()
+
+    if token in _DECIMALS_CACHE:
+        decimals = _DECIMALS_CACHE[token]
+    else:
+        decimals = await contract.functions.decimals().call()
+        _DECIMALS_CACHE[token] = decimals
+
+    raw = await contract.functions.balanceOf(holder).call()
     return raw / (10 ** decimals)
 
-def read_pool(pool_def, tokens_by_chain):
-    chain = pool_def["chain"]
-    holder = pool_def["holder"]
+
+async def read_pool_async(pool_def, tokens_by_chain):
+    chain   = pool_def["chain"]
+    holder  = pool_def["holder"]
     symbols = pool_def["tokens"]
 
-    w3 = get_web3(chain)
+    w3 = get_async_web3(chain)
 
-    balances = {}
+    tasks = []
 
     for symbol in symbols:
         token = tokens_by_chain[chain][symbol]
-        balances[symbol] = erc20_balance(w3, token, holder)
+        tasks.append(
+            erc20_balance_async(w3, token, holder)
+        )
 
-    return balances
+    results = await asyncio.gather(*tasks)
+    return dict(zip(symbols, results))

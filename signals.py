@@ -7,9 +7,9 @@ from balances import read_pool_async
 # PARAMETRI
 # ==============================
 
-WARMUP_SNAPSHOTS = 5      # numero di snapshot per valutare stabilità
-EPSILON_PERCENT = 0.2    # variazione % massima considerata rumore
-SNAPSHOT_INTERVAL = 5    # secondi tra uno snapshot e l'altro
+WARMUP_SNAPSHOTS = 10      # numero di snapshot per valutare stabilità
+EPSILON_PERCENT = 0.25    # variazione % massima considerata rumore
+SNAPSHOT_INTERVAL = 6    # secondi tra uno snapshot e l'altro
 
 # ==============================
 # SNAPSHOT

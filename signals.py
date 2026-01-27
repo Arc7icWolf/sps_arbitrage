@@ -2,6 +2,7 @@ import asyncio
 from pools import POOLS
 from tokens import TOKENS
 from balances import read_pool_async
+from triggers import check_thresholds
 
 # ==============================
 # PARAMETRI
@@ -82,6 +83,7 @@ async def main():
 
     while True:
         current = await take_snapshot()
+        deltas = {}
 
         for pool in current:
             print(pool)
@@ -93,9 +95,13 @@ async def main():
                     continue
 
                 delta_pct = (curr - base) / base * 100
+                deltas[pool] = delta_pct
                 print(f"  {token}: {delta_pct:+.2f}%")
 
         print("-" * 40)
+
+        check_thresholds(deltas)
+
         await asyncio.sleep(SNAPSHOT_INTERVAL)
 
 if __name__ == "__main__":

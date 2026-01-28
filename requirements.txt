@@ -1,2 +1,4 @@
 playwright
 requests
+web3 
+aiohttp

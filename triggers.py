@@ -42,6 +42,6 @@ def check_thresholds(token, deltas):
                 f"{p1}: {d1:+.2f}%\n"
                 f"{p2}: {d2:+.2f}%\n"
                 f"Diff: {diff:.2f}%"
-            )
+            )     
 
     return alerts

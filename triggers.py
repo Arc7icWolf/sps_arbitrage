@@ -1,4 +1,6 @@
 from thresholds import THRESHOLDS
+from notify import notify
+
 
 def check_thresholds(token, deltas):
     """
@@ -18,17 +20,28 @@ def check_thresholds(token, deltas):
         if p1 not in deltas or p2 not in deltas:
             continue
 
-        diff = abs(deltas[p1] - deltas[p2])
+        d1 = deltas[p1]
+        d2 = deltas[p2]
+        diff = abs(d1 - d2)
 
         if diff >= threshold:
-            alerts.append({
+            alert = {
                 "token": token,
                 "pool_a": p1,
                 "pool_b": p2,
-                "delta_a": deltas[p1],
-                "delta_b": deltas[p2],
+                "delta_a": d1,
+                "delta_b": d2,
                 "diff": diff,
                 "threshold": threshold,
-            })
+            }
+
+            alerts.append(alert)
+
+            notify(
+                f"[{token}] Delta threshold superato ({threshold:.2f}%)\n"
+                f"{p1}: {d1:+.2f}%\n"
+                f"{p2}: {d2:+.2f}%\n"
+                f"Diff: {diff:.2f}%"
+            )
 
     return alerts

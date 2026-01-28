@@ -38,7 +38,10 @@ async def erc20_balance_async(w3, token, holder):
         if token in _DECIMALS_CACHE:
             decimals = _DECIMALS_CACHE[token]
         else:
-            decimals = await contract.functions.decimals().call()
+            try:
+                decimals = await contract.functions.decimals().call()
+            except Exception:
+                decimals = 18  # fallback standard ERC20
             _DECIMALS_CACHE[token] = decimals
 
         raw = await contract.functions.balanceOf(holder).call()

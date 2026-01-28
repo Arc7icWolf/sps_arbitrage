@@ -58,11 +58,11 @@ def snapshot_is_stable(snapshots):
 # MAIN
 # ==============================
 
-async def main():
+async def main(logger=print):
     snapshots = []
     baseline = None
 
-    print("Warm-up phase (ricerca baseline stabile)...")
+    logger("Warm-up phase (ricerca baseline stabile)...")
 
     while baseline is None:
         snap = await take_snapshot()
@@ -72,21 +72,21 @@ async def main():
             window = snapshots[-WARMUP_SNAPSHOTS:]
             if snapshot_is_stable(window):
                 baseline = snap
-                print("Baseline fissata.")
+                logger("Baseline fissata.")
             else:
                 # manteniamo la finestra mobile
                 snapshots.pop(0)
 
         await asyncio.sleep(SNAPSHOT_INTERVAL)
 
-    print("\nMonitoraggio variazioni (delta % rispetto alla baseline)\n")
+    logger("\nMonitoraggio variazioni (delta % rispetto alla baseline)\n")
 
     while True:
         current = await take_snapshot()
         deltas = {}
 
         for pool in current:
-            print(pool)
+            logger(pool)
             for token in current[pool]:
                 base = baseline[pool][token]
                 curr = current[pool][token]
@@ -97,9 +97,9 @@ async def main():
                 delta_pct = (curr - base) / base * 100
 
                 deltas.setdefault(token, {})[pool] = delta_pct
-                print(f"  {token}: {delta_pct:+.2f}%")
+                logger(f"  {token}: {delta_pct:+.2f}%")
 
-        print("-" * 40)
+        logger("-" * 40)
 
         for token, token_deltas in deltas.items():
             alerts = check_thresholds(token, token_deltas)

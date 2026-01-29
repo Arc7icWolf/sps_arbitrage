@@ -82,30 +82,36 @@ async def main(logger=print):
     logger("\nMonitoraggio variazioni (delta % rispetto alla baseline)\n")
 
     while True:
-        current = await take_snapshot()
-        deltas = {}
+        try:
+            current = await take_snapshot()
+            deltas = {}
 
-        for pool in current:
-            logger(pool)
-            for token in current[pool]:
-                base = baseline[pool][token]
-                curr = current[pool][token]
+            for pool in current:
+                logger(pool)
+                for token in current[pool]:
+                    base = baseline[pool][token]
+                    curr = current[pool][token]
 
-                if base == 0:
-                    continue
+                    if base == 0:
+                        continue
 
-                delta_pct = (curr - base) / base * 100
+                    delta_pct = (curr - base) / base * 100
 
-                deltas.setdefault(token, {})[pool] = delta_pct
-                logger(f"  {token}: {delta_pct:+.2f}%")
+                    deltas.setdefault(token, {})[pool] = delta_pct
+                    logger(f"  {token}: {delta_pct:+.2f}%")
 
-        logger("-" * 40)
+            logger("-" * 40)
 
-        for token, token_deltas in deltas.items():
-            alerts = check_thresholds(token, token_deltas)
+            for token, token_deltas in deltas.items():
+                alerts = check_thresholds(token, token_deltas)
 
-        await asyncio.sleep(SNAPSHOT_INTERVAL)
+            await asyncio.sleep(SNAPSHOT_INTERVAL)
+        except Exception as e:
+            logger("❌ ERRORE NEL LOOP PRINCIPALE")
+            logger(str(e))
 
+            # evita loop infinito di errori
+            await asyncio.sleep(5)
 
 if __name__ == "__main__":
     asyncio.run(main())

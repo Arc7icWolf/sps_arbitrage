@@ -171,7 +171,7 @@ def format_results(results, session: requests.Session):
         print("✅ Tutti i valori sono entro la soglia")
 
 
-def spl(dollars_hive, dollars):
+def spl(dollars_hive, dollars, session: requests.Session):
     token = "spl"
     spl_tokens = ["SWAP.HIVE:SPS", "SWAP.HIVE:DEC"]
     spl_prices = []
@@ -198,7 +198,7 @@ def spl(dollars_hive, dollars):
     dec_outliers = find_divergence(dec_values, session, token)
 
 
-def hive():
+def hive(session: requests.Session):
     token = "hive"
     hive_token = "SWAP.HIVE:SWAP.ETH"
 
@@ -238,9 +238,9 @@ def compare_prices(tokens, session: requests.Session):
     )
     """
 
-    spl(dollars_hive, dollars)
+    spl(dollars_hive, dollars, session)
 
-    hive()
+    hive(session)
 
 
 if __name__ == "__main__":

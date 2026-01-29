@@ -1,5 +1,7 @@
 from thresholds import THRESHOLDS
 from notify import notify
+import requests
+from arbitrage import compare_prices
 
 
 def check_thresholds(token, deltas):
@@ -42,6 +44,11 @@ def check_thresholds(token, deltas):
                 f"{p1}: {d1:+.2f}%\n"
                 f"{p2}: {d2:+.2f}%\n"
                 f"Diff: {diff:.2f}%"
-            )     
+            )
+            '''
+            tokens = ["ethereum"]
+            with requests.Session() as session:
+                compare_prices(tokens, session)
+            '''     
 
     return alerts
